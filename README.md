@@ -41,7 +41,17 @@ For more details about this base project See: [Service Oriented Architecture Lab
 
 ## In this exercise
 
-* Install nuget packages to install Serilog
-* Configure Serilog
-* Send log data to azure application insight 
-* Send custom event data to application insight
+* We will provision application insight service in azure
+* Incorporating app insight and serilog in asp.net core appliation like 
+* Configure application insight
+* Using it in the code
+
+Here are the steps to begin with 
+
+ ## Step 1: Create Azure SQL
+
+ Open [Azure Portal](https://portal.azure.com/) and go to your subscription.
+
+ Go to your app insight resource and if it is not already created then create new and copy instrumentation key:
+ 
+ ![key](appinsightkey.jpg)
