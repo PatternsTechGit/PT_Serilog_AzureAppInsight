@@ -54,4 +54,4 @@ Here are the steps to begin with
 
  Go to your app insight resource and if it is not already created then create new and copy instrumentation key:
  
- ![key](appinsightkey.jpg)
+ ![key](/readmersources/appinsightkey.jpg)
