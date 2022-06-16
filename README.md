@@ -15,13 +15,13 @@ In azure application insight we can also send *custom event* data, a custom even
 
 ## About this exercise
 
-In this lab we will be working on two code Bases, **Backend Code base** 
+In this lab we will be working on **Backend Code base** 
 
 ### **Backend Code Base:**
 
-Previously we developed a base structure of an api solution in Asp.net core that have just two api functions GetLast12MonthBalances & GetLast12MonthBalances/{userId} which returns data of the last 12 months total balances.
+Previously we developed a base structure of an api solution in asp.net core that have just two api functions **GetLast12MonthBalances** & **GetLast12MonthBalances/{userId}** which returns data of the last 12 months total balances.
 
-![](/BBBank_UI/src/assets/images/12m.jpg)
+![apimethods](/readme_assets/apimethods.jpg)
 
 
 There are 4 Projects in the solution. 
@@ -34,17 +34,17 @@ There are 4 Projects in the solution.
 
 * **BBBankAPI**: This project contains *TransactionController* with two GET methods *GetLast12MonthBalances* & *GetLast12MonthBalances/{userId}* to call the *TransactionService*.
 
-![](/BBBank_UI/src/assets/images/4.png)
+![apiStructure](/readme_assets/apistructure.png)
 
-For more details about this base project See: [Service Oriented Architecture Lab](https://github.com/PatternsTechGit/PT_ServiceOrientedArchitecture)
+For more details about this base project see: [Service Oriented Architecture Lab](https://github.com/PatternsTechGit/PT_ServiceOrientedArchitecture)
 
-
+---------------
 ## In this exercise
 
 * We will provision application insight service in azure
-* Incorporating app insight and serilog in asp.net core appliation like 
-* Configure application insight
-* Using it in the code
+* Incorporating app insight and serilog in asp.net core application like installing necessary nuget packages
+* Configure serilog and application insight in code and in configuration
+* Logging in the code using serilog and custom events using telemetry client
 
 Here are the steps to begin with 
 
@@ -54,4 +54,4 @@ Here are the steps to begin with
 
  Go to your app insight resource and if it is not already created then create new and copy instrumentation key:
  
- ![key](/readmersources/appinsightkey.jpg)
+ ![key](/readme_assets/appinsightkey.jpg)
