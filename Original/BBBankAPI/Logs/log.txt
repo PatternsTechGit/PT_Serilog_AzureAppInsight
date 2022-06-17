@@ -1,0 +1,14 @@
+2022-06-17 20:12:21.156 +05:00 [INF] Now listening on: https://localhost:7146
+2022-06-17 20:12:21.185 +05:00 [INF] Now listening on: http://localhost:5146
+2022-06-17 20:12:21.189 +05:00 [INF] Application started. Press Ctrl+C to shut down.
+2022-06-17 20:12:21.191 +05:00 [INF] Hosting environment: Development
+2022-06-17 20:12:21.193 +05:00 [INF] Content root path: D:\PT\PT_Serilog_AzureAppInsight\Original\BBBankAPI\
+2022-06-17 20:12:50.487 +05:00 [INF] Executing GetLast12MonthBalances
+2022-06-17 20:13:02.748 +05:00 [INF] Executed GetLast12MonthBalances
+2022-06-17 20:15:31.780 +05:00 [INF] Now listening on: https://localhost:7146
+2022-06-17 20:15:31.807 +05:00 [INF] Now listening on: http://localhost:5146
+2022-06-17 20:15:31.816 +05:00 [INF] Application started. Press Ctrl+C to shut down.
+2022-06-17 20:15:31.818 +05:00 [INF] Hosting environment: Development
+2022-06-17 20:15:31.819 +05:00 [INF] Content root path: D:\PT\PT_Serilog_AzureAppInsight\Original\BBBankAPI\
+2022-06-17 20:15:48.686 +05:00 [INF] Executing GetLast12MonthBalances
+2022-06-17 20:16:22.244 +05:00 [INF] Executed GetLast12MonthBalances
