@@ -55,3 +55,165 @@ Here are the steps to begin with
  Go to your app insight resource and if it is not already created then create new and copy instrumentation key:
  
  ![key](/readme_assets/appinsightkey.jpg)
+
+ ## Step 2: Install following nuget packages
+
+
+ ## Step 3: Add below code block in program.cs after 
+ #### *WebApplication.CreateBuilder(args)* 
+
+ ```csharp
+
+using Serilog;
+using Serilog.Events;
+
+ var logger = new LoggerConfiguration()
+.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+// ASP.NET Core infrastructure logs that are Information and below will be filtered out.
+.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+// Picking up configuration from appsettings.json
+.ReadFrom.Configuration(builder.Configuration)
+.Enrich.FromLogContext()
+// Creating Serilog logger object based on the configuration above. 
+.CreateLogger();
+
+ ```
+
+ ## Step 4: Setup ap.net core pipeline within tray catch block
+
+Now start try catch block after step 3, to enclose ap.net core pipeline building including logger and code would be looks like this
+
+```csharp
+
+try
+{
+
+    // clear all exsiting logging proveriders
+    builder.Logging.ClearProviders();
+    // Adding Serilog to ASP.net core's pipe line
+    builder.Logging.AddSerilog(logger);
+    // Adding App Inisghts to send custom events.
+    builder.Services.AddApplicationInsightsTelemetry();
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
+    builder.Services.AddSingleton<BBBankContext>();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+
+    logger.Fatal(ex, "Error Starting BBBank API");
+}
+finally
+{
+    logger.Dispose();
+}
+
+```
+
+The reason to use try catch block is that if during asp.net core pipeline building ,application failed to launch then we may know what had happened .
+
+ ## Step 5: Configure sinks in appsettings.json file
+
+ Add following lines in appsettings to configure custom events
+
+ ```
+  // To configure app insight custom events (custom events for User Specific Actions ( e.g. User Accessed Accounts Data))
+  "ApplicationInsights": {
+    "InstrumentationKey": "fe637258-ecc6-43d0-9fab-a0d996f4cf07",
+    "LogLevel": {
+      // By default AppInsights only logs Warning so we have to override it.
+      "Default": "Information"
+    }
+  }
+
+ ```
+
+  Add following lines in appsettings to enable serilog sinks for file and application insights
+
+ ```
+   "Serilog": {
+    // Array of serilog sinks that will used.
+    "Using": [ "Serilog.Sinks.ApplicationInsights", "Serilog.Sinks.File" ], // "Serilog.Sinks.Debug",
+    "MinimumLevel": "Information",
+    // Configuring Each sink indivusally. 
+    "WriteTo": [
+      //{
+      //  "Name": "Debug"
+      //},
+      {
+        "Name": "File",
+        "Args": { "path": "Logs/log.txt" }
+      },
+      {
+        "Name": "ApplicationInsights",
+        "Args": {
+          "instrumentationKey": "fe637258-ecc6-43d0-9fab-a0d996f4cf07",
+          //"restrictedToMinimumLevel": "Information",
+          "telemetryConverter": "Serilog.Sinks.ApplicationInsights.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights"
+        }
+      }
+    ]
+  }
+
+ ```
+
+  ## Step 6: Add log file in API project
+
+  Add log.txt file in "Logs" folder within API project so that serilog can log information into it, as file sink is configured in above step.
+
+## Step 7: Add log file in API project
+
+    Add following lines in **TransactionController** method *GetLast12MonthBalances* and method would be looks like this:
+
+    ```csharp
+        [HttpGet]
+        [Route("GetLast12MonthBalances")]
+        public async Task<ActionResult> GetLast12MonthBalances()
+        {
+            try
+            {
+                // Logging the name of the function before entering the business logic.
+                logger.LogInformation("Executing GetLast12MonthBalances");
+                //return new OkObjectResult(await _transactionService.GetLast12MonthBalances(null));
+                var res = await _transactionService.GetLast12MonthBalances(null);
+                // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
+                telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
+                    { "TotalFiguresReturned", res.Figures.Count().ToString() }
+                     , { "TotaBalance" , res.TotalBalance.ToString() }
+                });
+                // Logging the name of the function after the business logic has executed.
+                logger.LogInformation("Executed GetLast12MonthBalances");
+                return new OkObjectResult(res);
+
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Exception Executing GetLast12MonthBalances");
+                return new BadRequestObjectResult(ex);
+            }
+        }
+    ```
