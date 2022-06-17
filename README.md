@@ -48,19 +48,21 @@ For more details about this base project see: [Service Oriented Architecture Lab
 
 Here are the steps to begin with 
 
- ## Step 1: Create Azure SQL
+ ## Step 1: Provision azure application insight
 
  Open [Azure Portal](https://portal.azure.com/) and go to your subscription.
 
- Go to your app insight resource and if it is not already created then create new and copy instrumentation key:
+ Go to your app insight resource and if it is not already created then create new one and copy instrumentation key:
  
  ![key](/readme_assets/appinsightkey.jpg)
 
- ## Step 2: Install following nuget packages
+ ## Step 2: Install nuget packages 
 
+Install following nuget packages in API project *BBBankAPI*
 
- ## Step 3: Add below code block in program.cs after 
- #### *WebApplication.CreateBuilder(args)* 
+ ![key](/readme_assets/nugetpackages.png)
+ ## Step 3: Add code to configure serilog and application insight and their logging levels  
+Add below code block in program.cs after *WebApplication.CreateBuilder(args)* 
 
  ```csharp
 
@@ -79,9 +81,10 @@ using Serilog.Events;
 
  ```
 
- ## Step 4: Setup ap.net core pipeline within tray catch block
+ ## Step 4: Setup ap.net core pipeline within try catch block
 
-Now start try catch block after step 3, to enclose ap.net core pipeline building including logger and code would be looks like this
+Now start try catch block after step 3, to enclose ap.net core pipeline building including logger.
+Then code would be looks like this:
 
 ```csharp
 
@@ -134,7 +137,7 @@ finally
 
 ```
 
-The reason to use try catch block is that if during asp.net core pipeline building ,application failed to launch then we may know what had happened .
+The reason to use try catch block is that if during asp.net core pipeline building, application failed to launch then we may know what had happened .
 
  ## Step 5: Configure sinks in appsettings.json file
 
@@ -185,9 +188,9 @@ The reason to use try catch block is that if during asp.net core pipeline buildi
 
   Add log.txt file in "Logs" folder within API project so that serilog can log information into it, as file sink is configured in above step.
 
-## Step 7: Add log file in API project
+## Step 7: Logging in in API controller
 
-    Add following lines in **TransactionController** method *GetLast12MonthBalances* and method would be looks like this:
+Add following lines in **TransactionController** controller method *GetLast12MonthBalances* then method would be looks like this:
 
     ```csharp
         [HttpGet]
@@ -203,7 +206,7 @@ The reason to use try catch block is that if during asp.net core pipeline buildi
                 // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
                 telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
                     { "TotalFiguresReturned", res.Figures.Count().ToString() }
-                     , { "TotaBalance" , res.TotalBalance.ToString() }
+                     , { "TotalBalance" , res.TotalBalance.ToString() }
                 });
                 // Logging the name of the function after the business logic has executed.
                 logger.LogInformation("Executed GetLast12MonthBalances");
@@ -217,3 +220,10 @@ The reason to use try catch block is that if during asp.net core pipeline buildi
             }
         }
     ```
+------
+### Final Output:
+
+After completing all above steps, build the project in visual studio and there should be no error. Upon successful build run the project and access API endpoint **GetLast12MonthBalances** and you would see log messages in log.txt file and in application insight as well :
+
+
+>![logMesssages](/readme_assets/logmsg.png)

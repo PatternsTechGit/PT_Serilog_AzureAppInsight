@@ -32,7 +32,7 @@ namespace BBBankAPI.Controllers
                 // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
                 telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
                     { "TotalFiguresReturned", res.Figures.Count().ToString() }
-                     , { "TotaBalance" , res.TotalBalance.ToString() }
+                     , { "TotalBalance" , res.TotalBalance.ToString() }
                 });
                 // Logging the name of the function after the business logic has executed.
                 logger.LogInformation("Executed GetLast12MonthBalances");
