@@ -81,7 +81,7 @@ using Serilog.Events;
 
  ```
 
- ## Step 4: Setup ap.net core pipeline within try catch block
+ ## Step 4: Setup asp.net core pipeline within try catch block
 
 Now start try catch block after step 3, to enclose ap.net core pipeline building including logger.
 Then code would be looks like this:
