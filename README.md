@@ -104,7 +104,7 @@ using Serilog.Events;
 
 We will implement try catch block to enclose asp.net pipeline building so that if during pipeline building, application failed to launch then we may know what had happened .
 
-Now enclose ap.net core pipeline building including serilog as below:
+Now enclose asp.net core pipeline building including serilog as below:
 
 ```csharp
 
@@ -156,7 +156,7 @@ finally
 }
 
 ```
- ## Step 5: Configure sinks in appsettings.json file
+## Step 5: Configure sinks in appsettings.json file
 
 In first step we copied instrumentation key so now we will use it here to enable custom event logging .
 
@@ -200,7 +200,7 @@ Now add following lines in appsettings for application insight so that custom ev
 
  ```
 
-  ## Step 6: Add log file in API project
+## Step 6: Add log file in API project
 
   Add `log.txt` file in "Logs" folder within API project so that serilog can log information into it, as file sink is configured in above step.
 
@@ -214,34 +214,34 @@ And using `telemetryClient.TrackEvent` we are directly sending custom evens to a
 
 So now **TransactionController** controller method *GetLast12MonthBalances* method would be looks like this:
 
-    ```csharp
-        [HttpGet]
-        [Route("GetLast12MonthBalances")]
-        public async Task<ActionResult> GetLast12MonthBalances()
-        {
-            try
-            {
-                // Logging the name of the function before entering the business logic.
-                logger.LogInformation("Executing GetLast12MonthBalances");
-                //return new OkObjectResult(await _transactionService.GetLast12MonthBalances(null));
-                var res = await _transactionService.GetLast12MonthBalances(null);
-                // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
-                telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
-                    { "TotalFiguresReturned", res.Figures.Count().ToString() }
-                     , { "TotalBalance" , res.TotalBalance.ToString() }
-                });
-                // Logging the name of the function after the business logic has executed.
-                logger.LogInformation("Executed GetLast12MonthBalances");
-                return new OkObjectResult(res);
+```csharp
+[HttpGet]
+[Route("GetLast12MonthBalances")]
+public async Task<ActionResult> GetLast12MonthBalances()
+{
+   try
+   {
+       // Logging the name of the function before entering the business logic.
+       logger.LogInformation("Executing GetLast12MonthBalances");
+       //return new OkObjectResult(await _transactionService.GetLast12MonthBalances(null));
+       var res = await _transactionService.GetLast12MonthBalances(null);
+       // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
+       telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
+           { "TotalFiguresReturned", res.Figures.Count().ToString() }
+            , { "TotalBalance" , res.TotalBalance.ToString() }
+       });
+       // Logging the name of the function after the business logic has executed.
+       logger.LogInformation("Executed GetLast12MonthBalances");
+       return new OkObjectResult(res);
 
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Exception Executing GetLast12MonthBalances");
-                return new BadRequestObjectResult(ex);
-            }
-        }
-    ```
+   }
+   catch (Exception ex)
+   {
+       logger.LogError(ex, "Exception Executing GetLast12MonthBalances");
+       return new BadRequestObjectResult(ex);
+   }
+}
+```
 ------
 ### Final Output:
 
