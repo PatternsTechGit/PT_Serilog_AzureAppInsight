@@ -15,9 +15,9 @@ In azure application insight we can also send [custom event](https://docs.micros
 
 ## About this exercise
 
-In this lab we will be working on **Backend Code base** 
+In this lab we will be working on **Backend codebase** .
 
-### **Backend Code Base:**
+### **Backend Codebase:**
 
 Previously we developed a base structure of an api solution in asp.net core that have just two api functions **GetLast12MonthBalances** & **GetLast12MonthBalances/{userId}** which returns data of the last 12 months total balances.
 
@@ -79,9 +79,7 @@ Install-Package Serilog.Sinks.ApplicationInsights -Version 3.1.0
  ![key](/readme_assets/nugetpackages.png)
  ## Step 3: Configure serilog and set logging levels
 
- In this step we will add code to initialize serilog with its logging levels.
-
- So add below code block in program.cs after *WebApplication.CreateBuilder(args)* 
+We will configure the [logging levels](https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level) like in `program.cs` after `WebApplication.CreateBuilder(args)` as below :
 
  ```csharp
 
