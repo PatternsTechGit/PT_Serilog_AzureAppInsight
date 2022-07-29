@@ -1,21 +1,19 @@
 # Serilog and Azure Application Insight
 
-## What is Serilog and Azure Application Insight ?
+## What is Serilog and Azure Application Insight?
 
-Logging is the information that tells us what is happening in application and it is fundamental to troubleshoot any application problems.
+Serilog is one of the l**ogging framework**. Logging is the information that tells us what is happening in application and it is fundamental to troubleshoot any application problems. Logging frameworks make it easy to send **logs to different places via simple configurations**, 
 
-Logging frameworks make it easy to send logs to different places via simple configurations, **Serilog** is one of the logging framework.
+Serilog uses **sinks** which are the places where we store our log messages like text file, database, log management solutions(e.g. datadog), or some cloud service like **Azure Application Insight** or potentially dozens of [other places](https://github.com/serilog/serilog/wiki/Provided-Sinks), all without changing your code.
 
-Serilog uses **sinks** which are the places where we store our log messages like text file, database, log management solutions(e.g. datadog), or some cloud service like **azure application insight** or potentially dozens of [other places](https://github.com/serilog/serilog/wiki/Provided-Sinks), all without changing your code.
-
-In azure application insight we can also send [custom event](https://docs.microsoft.com/en-us/azure/azure-monitor/app/api-custom-events-metrics#trackevent) data, a custom event is a data point/metric in azure application insight that can be useful to identify a particular situation like how often users choose a particular feature, how often they achieve particular goals, or maybe make particular types of mistake.
+In Azure Application Insight we can also send [custom event](https://docs.microsoft.com/en-us/azure/azure-monitor/app/api-custom-events-metrics#trackevent) data. A **custom event is a data point/metric in azure application insight that can be useful to identify a particular situation** like how often users choose a particular feature, how often they achieve particular goals, or maybe make particular types of mistake.
 
 
 ---------------
 
 ## About this exercise
 
-In this lab we will be working on **Backend codebase** .
+In this lab we will be working on **Backend codebase**
 
 ### **Backend Codebase:**
 
@@ -41,29 +39,29 @@ For more details about this base project see: [Service Oriented Architecture Lab
 ---------------
 ## In this exercise
 
-* Provisioning application insight in azure
-* Incorporating app insight and serilog in asp.net core application
-* Enable serilog and application insight logging within code and using appsettings.json
-* Implementing logging using serilog and custom events
+* **Provisioning application insight** in azure
+* **Incorporating application insight and serilog** in asp.net core application
+* **Enable serilog and application insight logging** within the app settings
+* **Implementing logging using serilog and custom events**
 
 
 Here are the steps to begin with 
 
- ## Step 1: Provision azure application insight
+ ## Step 1: Provision Azure Application Insight
 
  Open [Azure Portal](https://portal.azure.com/) and go to your subscription.
 
- Go to your app insight resource and if it is not already created then create new one and copy instrumentation key:
+ Go to your Application Insights resource and if it is not already created then create new one and copy the instrumentation key:
  
  ![key](/readme_assets/appinsightkey.png)
 
- ## Step 2: Install nuget packages 
+ ## Step 2: Install Nuget Packages 
 
-Install following nuget packages in API project *BBBankAPI* through nuget package manager
+Install following nuget packages in API project **BBBankAPI** through nuget package manager
 
-- Microsoft.ApplicationInsights.AspNetCore to add Application Insights support.
-- Serilog.AspNetCore to support serilog logging for ASP.Net Core
-- Serilog.Sinks.ApplicationInsights to log information in application insight
+- **Microsoft.ApplicationInsights.AspNetCore** to add Application Insights support.
+- **Serilog.AspNetCore** to support serilog logging for ASP.Net Core
+- **Serilog.Sinks.ApplicationInsights** to log information in application insight
 
 You may install using package manager console as well:
 
@@ -77,15 +75,12 @@ Install-Package Serilog.AspNetCore -Version 5.0.0
 Install-Package Serilog.Sinks.ApplicationInsights -Version 3.1.0
 ```
  ![key](/readme_assets/nugetpackages.png)
- ## Step 3: Configure serilog and set logging levels
 
-We will configure the [logging levels](https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level) like in `program.cs` after `WebApplication.CreateBuilder(args)` as below :
+ ## Step 3: Configure Serilog and Set Logging Levels
+
+We will configure the [logging levels](https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level) after ***WebApplication.CreateBuilder(args)***.  Also add the configurations for **Serilog** and **AddApplicationInsightsTelemetry** in the `program.cs` file as given below 
 
  ```csharp
-
-using Serilog;
-using Serilog.Events;
-
  var logger = new LoggerConfiguration()
 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
 // ASP.NET Core infrastructure logs that are Information and below will be filtered out.
@@ -96,16 +91,38 @@ using Serilog.Events;
 // Creating Serilog logger object based on the configuration above. 
 .CreateLogger();
 
+ // clear all exsiting logging proveriders
+ builder.Logging.ClearProviders();
+ // Adding Serilog to ASP.net core's pipe line
+ builder.Logging.AddSerilog(logger);
+ // Adding App Inisghts to send custom events.
+ builder.Services.AddApplicationInsightsTelemetry();
  ```
 
- ## Step 4: Setup asp.net core pipeline within try catch block
+ ## Step 4: Setup ASP.NET Core Pipeline Within try catch Block
 
-We will implement try catch block to enclose asp.net pipeline building so that if during pipeline building, application failed to launch then we may know what had happened .
+We will **implement try catch block** to enclose ASP.NET pipeline builder so that if, during pipeline building, application failed to launch then we may know what had happened.
 
-Now enclose asp.net core pipeline building including serilog as below:
+The `program.cs` file will look like below
 
 ```csharp
+using Infrastructure;
+using Serilog;
+using Serilog.Events;
+using Services;
+using Services.Contracts;
 
+var builder = WebApplication.CreateBuilder(args);
+
+var logger = new LoggerConfiguration()
+.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+// ASP.NET Core infrastructure logs that are Information and below will be filtered out.
+.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+// Picking up configuration from appsettings.json
+.ReadFrom.Configuration(builder.Configuration)
+.Enrich.FromLogContext()
+// Creating Serilog logger object based on the configuration above. 
+.CreateLogger();
 try
 {
 
@@ -136,11 +153,11 @@ try
     }
 
     app.UseHttpsRedirection();
-
+    
     app.UseAuthorization();
-
+    
     app.MapControllers();
-
+    
     app.Run();
 }
 catch (Exception ex)
@@ -154,13 +171,16 @@ finally
 }
 
 ```
-## Step 5: Configure sinks in appsettings.json file
 
-In first step we copied instrumentation key so now we will use it here to enable custom event logging .
+## Step 5: Add Log File in API Project
 
-Now add following lines in appsettings for application insight so that custom events can be send by `telemetryClient`:
+  Create a new folder **Logs** in the **BBBankAPI** project and create a new file `log.txt` in this folder.This file will be used by the serilog to log information in it. We will configure this file in the app settings in the next step
 
- ```
+## Step 6: Configure Sinks in App Settings
+
+Now add following code in app settings for application insight so that custom events can be send by **telemetryClient**. 
+
+ ```cs
   // To configure app insight custom events (custom events for User Specific Actions ( e.g. User Accessed Accounts Data))
   "ApplicationInsights": {
     "InstrumentationKey": "fe637258-ecc6-43d0-9fab-xxxxxxxxxxxx",
@@ -172,9 +192,9 @@ Now add following lines in appsettings for application insight so that custom ev
 
  ```
 
-  Add following lines in appsettings to enable serilog sinks for file and application insights : 
+  Also add following code in app settings to enable serilog sinks for file and application insights 
 
- ```
+ ```cs
    "Serilog": {
     // Array of serilog sinks that will used.
     "Using": [ "Serilog.Sinks.ApplicationInsights", "Serilog.Sinks.File" ],
@@ -195,57 +215,71 @@ Now add following lines in appsettings for application insight so that custom ev
       }
     ]
   }
-
  ```
 
-## Step 6: Add log file in API project
-
-  Add `log.txt` file in "Logs" folder within API project so that serilog can log information into it, as file sink is configured in above step.
+### **Note**
+We will **replace the instrumentation key** with the key we copied in the step 1.  
 
 ## Step 7: Logging in API controller
 
-Now we will add logging statements in *GetLast12MonthBalances* method.
+Now we will **add logging statements in GetLast12MonthBalances method**.
 
-For normal information we will be using `logger.LogInformation` statement to know what is happing and to log exception we will add `logger.LogError` statement to know stack trace and reason of the exception.
+We have multiple options to log information of different type which are listed below
+* **logger.LogInformation** for normal information to know what is happing the code
+* **logger.LogError** to log exceptions
+* **telemetryClient.TrackEvent** to know stack trace and reason of the exception
 
-And using `telemetryClient.TrackEvent` we are directly sending custom evens to application insight.
-
-So now **TransactionController** controller method *GetLast12MonthBalances* method would be looks like this:
+We have used all the options in the **GetLast12MonthBalances** method of **Transaction** controller. The code is given below
 
 ```csharp
-[HttpGet]
-[Route("GetLast12MonthBalances")]
-public async Task<ActionResult> GetLast12MonthBalances()
-{
-   try
-   {
-       // Logging the name of the function before entering the business logic.
-       logger.LogInformation("Executing GetLast12MonthBalances");
-       //return new OkObjectResult(await _transactionService.GetLast12MonthBalances(null));
-       var res = await _transactionService.GetLast12MonthBalances(null);
-       // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
-       telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
-           { "TotalFiguresReturned", res.Figures.Count().ToString() }
-            , { "TotalBalance" , res.TotalBalance.ToString() }
-       });
-       // Logging the name of the function after the business logic has executed.
-       logger.LogInformation("Executed GetLast12MonthBalances");
-       return new OkObjectResult(res);
+private readonly ITransactionService _transactionService;
+private readonly ILogger<TransactionController> _logger;
+private readonly TelemetryClient _telemetryClient;
 
-   }
-   catch (Exception ex)
-   {
-       logger.LogError(ex, "Exception Executing GetLast12MonthBalances");
-       return new BadRequestObjectResult(ex);
-   }
+public TransactionController(ILogger<TransactionController> logger, TelemetryClient telemetryClient, ITransactionService transactionService)
+
+{
+  _logger = logger;
+  _telemetryClient = telemetryClient;
+  _transactionService = transactionService;
+}
+
+ public async Task<ActionResult> GetLast12MonthBalances()
+ {
+  try
+  {
+    // Logging the name of the function before entering the business logic.
+    _logger.LogInformation("Executing GetLast12MonthBalances");
+    //return new OkObjectResult(await _transactionService.GetLast12MonthBalances(null));
+    var res = await _transactionService.GetLast12MonthBalances(null);
+    // recording custom event with some custom attributes TotalFiguresReturned and TotaBalance
+    _telemetryClient.TrackEvent("GetLast12MonthBalances Returned", new Dictionary<string, string>() {
+    { "TotalFiguresReturned", res.Figures.Count().ToString() }, 
+    { "TotalBalance" , res.TotalBalance.ToString() }
+  });
+  // Logging the name of the function after the business logic has executed.
+  _logger.LogInformation("Executed GetLast12MonthBalances");
+  return new OkObjectResult(res);
+
+  }
+  catch (Exception ex)
+  {
+    _logger.LogError(ex, "Exception Executing GetLast12MonthBalances");
+     return new BadRequestObjectResult(ex);
+  }
 }
 ```
+
+### **Note**
+We have injected the **ILogger<TransactionController>** and **TelemetryClient** to use these the our method 
+
 ------
+
 ### Final Output:
 
-Run the project and access API endpoint **GetLast12MonthBalances** and you would see log messages in `log.txt` file and in application insight as well.
+Run the project and access API endpoint **GetLast12MonthBalances** and you would see log messages in `log.txt` file and in the Application Insights as well.
 
-Here is URL to access API endpoint http://localhost:5070/api/Transaction/GetLast12MonthBalances
+URL to access API endpoint would be http://localhost:5070/api/Transaction/GetLast12MonthBalances
 
 
 >![logMesssages](/readme_assets/logmsg.png)
